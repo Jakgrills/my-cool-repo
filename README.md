@@ -40,6 +40,11 @@ To use this plugin, you have three options:
    - Use it as a starting point for building your own custom plugin
    - Adapt the functionality to match your specific use case
 
+## Architecture
+
+![diagram](https://github.com/user-attachments/assets/37a77777-160f-4e88-bd6b-63038e7285cc)
+
+
 ## Next steps
 
 For details on how the Plugin Library works and more, be sure to check [the repo for the Plugin Library](https://github.com/Common-Ground-DAO/CGPluginLib)

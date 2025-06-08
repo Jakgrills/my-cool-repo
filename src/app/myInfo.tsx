@@ -3,7 +3,7 @@ import { CgPluginLib, CommunityInfoResponsePayload, UserInfoResponsePayload } fr
 import { UserFriendsResponsePayload } from '@common-ground-dao/cg-plugin-lib-host';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, Suspense } from 'react';
 
 const publicKey = process.env.NEXT_PUBLIC_PUBKEY as string;
 if (!publicKey) {
@@ -80,4 +80,10 @@ const MyInfo = () => {
   </div>);
 }
 
-export default MyInfo;
+export default function MyInfoWithSuspense() {
+  return (
+    <Suspense>
+      <MyInfo />
+    </Suspense>
+  );
+}

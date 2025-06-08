@@ -1,7 +1,5 @@
 import Phaser from 'phaser';
 import { GameScene, GameState } from './types';
-import { useCgLib } from '../../context/CgLibContext';
-import { useAssignRoleAndRefresh } from '../../hooks/useAssignRoleAndRefresh';
 import { CgPluginLib } from '@common-ground-dao/cg-plugin-lib';
 
 export class BaristaGame extends Phaser.Game {

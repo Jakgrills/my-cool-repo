@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CgLibProvider } from "./context/CgLibContext";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CgLibProvider>
-          {children}
-        </CgLibProvider>
+        <Suspense>
+          <CgLibProvider>
+            {children}
+          </CgLibProvider>
+        </Suspense>
       </body>
     </html>
   );

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barista Brew - Playtest</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #2e2e2e; }
+    canvas { border: 1px solid #fff; }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+  <script>
+    const config = {
+      type: Phaser.AUTO,
+      width: 320,
+      height: 480,
+      pixelArt: true,
+      scene: {
+        preload: preload,
+        create: create,
+        update: update
+      }
+    };
+
+    const game = new Phaser.Game(config);
+
+    let barista, counter, beans, water, milk, cup, customer, feedbackText, saveButton, orderText, orderBubble, coinText, brewOrderText;
+    let brewSteps = [];
+    let isBrewing = false;
+    let currentOrder = [];
+    let coins = 0;
+
+    function preload() {
+      // No custom assets yet - using shapes
+    }
+
+    function create() {
+      // Background
+      this.add.rectangle(160, 240, 320, 480, 0x8b4513);
+
+      // Counter
+      counter = this.add.rectangle(160, 400, 300, 100, 0x4a2c2a).setOrigin(0.5);
+
+      // Barista (green circle)
+      barista = this.add.circle(160, 360, 20, 0x00ff00).setOrigin(0.5);
+
+      // Ingredients with labels
+      beans = this.add.rectangle(80, 420, 40, 40, 0x3c2f2f).setInteractive();
+      this.add.text(80, 445, 'Beans', { fontSize: '12px', color: '#fff' }).setOrigin(0.5);
+
+      water = this.add.rectangle(160, 420, 40, 40, 0x00b7eb).setInteractive();
+      this.add.text(160, 445, 'Water', { fontSize: '12px', color: '#fff' }).setOrigin(0.5);
+
+      milk = this.add.rectangle(240, 420, 40, 40, 0xffffff).setInteractive();
+      this.add.text(240, 445, 'Milk', { fontSize: '12px', color: '#fff' }).setOrigin(0.5);
+
+      // Cup (visible from start)
+      cup = this.add.rectangle(160, 300, 30, 40, 0xd3d3d3).setOrigin(0.5).setInteractive();
+      this.add.text(160, 325, 'Cup', { fontSize: '12px', color: '#fff' }).setOrigin(0.5);
+
+      // Customer (red circle)
+      customer = this.add.circle(160, 200, 20, 0xff0000).setOrigin(0.5);
+
+      // Feedback text
+      feedbackText = this.add.text(160, 100, '', { fontSize: '16px', color: '#fff' }).setOrigin(0.5);
+
+      // Order bubble
+      orderBubble = this.add.rectangle(160, 160, 200, 40, 0xffffff).setOrigin(0.5).setVisible(false);
+      orderText = this.add.text(160, 160, '', { fontSize: '12px', color: '#000' }).setOrigin(0.5).setVisible(false);
+
+      // Save button (pink with black text and border)
+      saveButton = this.add.rectangle(280, 40, 60, 30, 0xff69b4).setOrigin(0.5).setStrokeStyle(2, 0x000000).setInteractive();
+      this.add.text(280, 40, 'Save', { fontSize: '12px', color: '#000' }).setOrigin(0.5);
+
+      // Coin counter
+      coinText = this.add.text(40, 20, 'Coins: 0', { fontSize: '16px', color: '#fff' }).setOrigin(0.5);
+
+      // Instruction text
+      this.add.text(160, 60, 'Click ingredients in order to earn a coin', { fontSize: '12px', color: '#fff' }).setOrigin(0.5);
+      this.add.text(160, 75, 'Click cup to serve', { fontSize: '12px', color: '#fff' }).setOrigin(0.5);
+
+      // Brew order text (moved up 60px to y: 240, vertical display)
+      brewOrderText = this.add.text(40, 240, 'Order:\n', { fontSize: '12px', color: '#fff' }).setOrigin(0, 0.5);
+
+      // Input events
+      beans.on('pointerdown', () => addIngredient('Beans'));
+      water.on('pointerdown', () => addIngredient('Water'));
+      milk.on('pointerdown', () => addIngredient('Milk'));
+      cup.on('pointerdown', () => serveCoffee(this));
+      saveButton.on('pointerdown', () => saveProgress());
+
+      // Start with a fresh order
+      generateOrder();
+    }
+
+    function generateOrder() {
+      const ingredients = ['Beans', 'Water', 'Milk'];
+      currentOrder = Phaser.Utils.Array.Shuffle([...ingredients]);
+      const orderString = currentOrder.join(', ');
+      orderText.setText(orderString);
+      orderBubble.setVisible(true);
+      orderText.setVisible(true);
+    }
+
+    function addIngredient(ingredient) {
+      if (!isBrewing) {
+        isBrewing = true;
+      }
+      if (brewSteps.length < 3) {
+        brewSteps.push(ingredient);
+        barista.fillColor = 0xaaaaaa;
+        setTimeout(() => barista.fillColor = 0x00ff00, 200);
+        feedbackText.setText(`Added: ${ingredient}`);
+        // Update brew order text vertically
+        brewOrderText.setText(`Order:\n${brewSteps.join('\n')}`);
+      }
+    }
+
+    function serveCoffee(scene) {
+      if (brewSteps.length === 0) return;
+      isBrewing = false;
+
+      const isCorrect = brewSteps.every((step, i) => step === currentOrder[i]) && brewSteps.length === 3;
+
+      if (isCorrect) {
+        coins += 1;
+        coinText.setText(`Coins: ${coins}`);
+        customer.fillColor = 0x00ff00;
+        feedbackText.setText('+1 Coin! Nice brew!');
+        scene.tweens.add({
+          targets: customer,
+          y: 180,
+          duration: 300,
+          yoyo: true
+        });
+      } else {
+        customer.fillColor = 0x800000;
+        feedbackText.setText('Bleh! Wrong brew.');
+        scene.tweens.add({
+          targets: customer,
+          y: 250,
+          duration: 500,
+          onComplete: () => customer.y = 200
+        });
+      }
+
+      setTimeout(() => resetOrder(), 1500);
+    }
+
+    function resetOrder() {
+      brewSteps = [];
+      isBrewing = false;
+      customer.fillColor = 0xff0000;
+      customer.y = 200;
+      feedbackText.setText('');
+      brewOrderText.setText('Order:\n'); // Reset brew order text
+      generateOrder();
+    }
+
+    function saveProgress() {
+      console.log(`Saving ${coins} coins to Universal Profile...`);
+      feedbackText.setText(`Saved ${coins} coins!`);
+      setTimeout(() => feedbackText.setText(''), 1500);
+    }
+
+    function update() {
+      // No heavy logic needed
+    }
+  </script>
+</body>
+</html>

@@ -13,6 +13,7 @@
     "@common-ground-dao/cg-plugin-lib-host": "^0.9.6",
     "crypto": "^1.0.1",
     "next": "15.1.6",
+    "phaser": "^3.55.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
